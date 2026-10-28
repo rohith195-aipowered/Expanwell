@@ -75,7 +75,16 @@ const properties={
  grove:{id:'grove',name:'The Grove at Sohna Road',location:'Sohna Road, Gurugram',type:'Villa',price:'₹1.65 Cr',configuration:'3 BHK',area:'To be verified',features:['Private outdoor space','Family layout','Low-density concept'],image:'https://images.unsplash.com/photo-1600607687644-c7171b42498f?auto=format&fit=crop&w=1000&q=85',description:'A fictional villa listing concept created for this prototype. Price, location and features are placeholders, not a verified property offer.'}
 };
 const selected=new Set();
-const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+const $=s=>document.querySelector(s), $=s=>Array.from(document.querySelectorAll(s));
+document.addEventListener('click',e=>{
+  const card=e.target.closest('.property-card');
+  if(!card||e.target.closest('a,button,input,label,select'))return;
+  openDetail(card.dataset.id);
+},true);
+document.addEventListener('keydown',e=>{
+  const card=e.target.closest('.property-card');
+  if(card&&(e.key==='Enter'||e.key===' ')&&e.target===card){e.preventDefault();openDetail(card.dataset.id)}
+});
 function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.classList.remove('show'),2600)}
 function openModal(id){$('#'+id).classList.add('open');document.body.style.overflow='hidden'}
 function closeModals(){$$('.modal-backdrop').forEach(m=>m.classList.remove('open'));document.body.style.overflow=''}
@@ -85,18 +94,10 @@ $$('[data-open-booking]').forEach(b=>b.addEventListener('click',()=>openBooking(
 function openBooking(advisor=false){$('#bookingTitle').textContent=advisor?'Talk to an Expanwell advisor':'Request a property visit';$('#bookingSuccess').classList.remove('show');$('#bookingForm').style.display='block';$('#visitType').value=advisor?'Advisor call first':'In-person site visit';openModal('bookingModal')}
 function openDetail(id){const p=properties[id];if(!p)return;const mapQuery=encodeURIComponent(p.location+', Gurugram');$('#detailContent').innerHTML='<div class="eyebrow">Property profile · Demo listing</div><h2 class="serif">'+p.name+'</h2><p class="modal-sub">'+p.location+' · '+p.type+' · <strong>Details need verification</strong></p><div class="detail-layout"><div><img src="'+p.image+'" alt="'+p.name+' illustrative property visual"><div class="assumption-note">Illustrative reference image, not verified project photography. Request actual unit photos and the latest brochure.</div><div class="detail-metrics"><div class="metric"><span>Configuration</span><strong>'+p.configuration+'</strong></div><div class="metric"><span>Carpet / built-up area</span><strong>Not supplied</strong></div><div class="metric"><span>Floor plan</span><strong>Request from advisor</strong></div><div class="metric"><span>Availability</span><strong>Not confirmed</strong></div></div></div><div><div class="eyebrow">Indicative asking price</div><div class="price" style="font-size:27px">'+p.price+'</div><div class="assumption-note">Illustrative placeholder — not a verified offer. Confirm the exact unit, price validity, inclusions and additional charges.</div><h3 style="font-size:13px;margin:22px 0 8px">What to compare</h3><div class="features">'+p.features.map(f=>'<span>'+f+'</span>').join('')+'</div><p class="modal-sub">'+p.description+'</p><h3 style="font-size:13px;margin:20px 0 8px">Questions to resolve before a visit</h3><ul class="check-list"><li>Exact unit, floor, facing and carpet area</li><li>Floor plan, actual photos and possession status</li><li>Maintenance, parking, taxes and other costs</li><li>Title, approvals and relevant project documents</li><li>Current availability and nearby alternatives</li></ul><div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:18px"><a class="btn" href="https://www.google.com/maps/search/?api=1&query='+mapQuery+'" target="_blank" rel="noopener noreferrer">Open area in Google Maps ↗</a><button class="btn dark" data-detail-book="'+id+'">Request a visit&nbsp; →</button><button class="btn" data-detail-compare="'+id+'">Add to comparison</button></div></div></div>';openModal('detailModal');$('[data-detail-book]').addEventListener('click',e=>{const id=e.currentTarget.dataset.detailBook;$('#visitProperty').value=properties[id].name;closeModals();openBooking()});$('[data-detail-compare]').addEventListener('click',e=>{const id=e.currentTarget.dataset.detailCompare;if(!selected.has(id)&&selected.size>=3){toast('Compare up to three properties at a time');return}selected.add(id);const cb=$('[data-compare="'+id+'"]');if(cb)cb.checked=true;updateCompareBar();closeModals();toast('Added to your comparison')})}
 $('[data-detail]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();openDetail(a.dataset.detail)}));
-$$('.property-card').forEach(card=>{
+$('.property-card').forEach(card=>{
   card.setAttribute('tabindex','0');
   card.setAttribute('role','link');
   card.setAttribute('aria-label','View details for '+card.dataset.name);
-  const showCardDetails=()=>openDetail(card.dataset.id);
-  card.addEventListener('click',e=>{
-    if(e.target.closest('a,button,input,label,select'))return;
-    showCardDetails();
-  });
-  card.addEventListener('keydown',e=>{
-    if((e.key==='Enter'||e.key===' ')&&e.target===card){e.preventDefault();showCardDetails()}
-  });
 });
 $('#findSocialProperty').addEventListener('click',()=>{openBooking(true);$('#bookingTitle').textContent='Help me find a property';$('#visitProperty').value='Not sure yet — help identify it';if(!Array.from($('#visitProperty').options).some(o=>o.value==='Not sure yet — help identify it'))$('#visitProperty').insertAdjacentHTML('afterbegin','<option value="Not sure yet — help identify it">Not sure yet — help identify it</option>');$('#visitNotes').placeholder='Paste the Instagram / video link, project name, or describe what you remember';$('#visitType').value='Advisor call first'});
 $$('.heart').forEach(b=>b.addEventListener('click',()=>{b.classList.toggle('saved');b.textContent=b.classList.contains('saved')?'♥':'♡';toast(b.classList.contains('saved')?'Saved to your local shortlist':'Removed from shortlist')}));
